@@ -1,10 +1,10 @@
 #change back to python 3.6 later (only changes involve urllib)
 import requests
 import json
-#import urllib.request, urllib.parse, urllib.error
-import urllib, urllib2
+import urllib.request, urllib.parse, urllib.error
+#import urllib, urllib2
 #hard coded values
-key = "ba2011a89a13483fab1390e169ea5173"
+key = "1f3021aa1ab74cedaf685826f631ab5a"
 headers= {"Host": 'westcentralus.api.cognitive.microsoft.com', "Content-Type":'application/json','Ocp-Apim-Subscription-Key': key }
 personGroupId = "test123"
 
@@ -72,10 +72,13 @@ def trainGroup():
 	url = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/persongroups/"+personGroupId+"/train"
 	response = requests.post(url=url, headers=headers)
 def detectFace(imageUrl): 
-	urlAPI = 'https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect?' + urllib.urlencode({ 'returnFaceId': 'true'})
+	localHeaders = {"Host": 'westcentralus.api.cognitive.microsoft.com', "Content-Type":'application/octet-stream','Ocp-Apim-Subscription-Key': key }
+	urlAPI = 'https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect?' + urllib.parse.urlencode({ 'returnFaceId': 'true'})
 	#photo to check
-	body = { "url" : imageUrl}
-	response = requests.post(url = urlAPI, json = body, headers = headers)
+	data = open(imageUrl, 'rb').read()  
+	#body = { "url" : imageUrl}
+	response = requests.post(url = urlAPI, data = data, headers = localHeaders)
+	print (response.json())
 	try:
 		theirID = response.json()[0]["faceId"]
 	except:
@@ -95,5 +98,5 @@ deletePersonGroup()
 createPersonGroup()
 ids = createPerson()
 trainGroup()
-testImage = "https://scontent-lax3-1.xx.fbcdn.net/v/t1.0-9/14642115_641584432676580_1901022073400796775_n.jpg?oh=a947a2d12b532ee9cd2a3b5bebbd235f&oe=5B012EB4"
+testImage = "capture.jpg"
 print ("Detected face", detectFace(testImage))
