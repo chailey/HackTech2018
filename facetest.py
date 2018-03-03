@@ -102,7 +102,22 @@ def itemDetect(imageUrl):
 	detectHeaders = {"Content-Type":'application/json','Ocp-Apim-Subscription-Key': handWriteDetectKey}
 	data = {"url": imageUrl}
 	response = requests.post(url = url, json = data, headers = detectHeaders) 
-	print (response.text)
+	#operationLocation =  response.headers['Operation-Location'];
+	operationLocation = response.request.headers['Operation-Location']
+	operationID = str(operationLocation)[operationLocation.rfind('/')+1:]
+
+	import time
+	#sometimes takes a second to process
+	time.sleep(1)
+
+	tempUrl = 'https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/textOperations/'+operationID
+	response = requests.get(url=tempUrl,headers=detectHeaders)
+
+	recognitionResult = response.json()['recognitionResult']
+	if(len(str(recognitionResult)) == 0):
+		return -1;
+	val = recognitionResult['lines'][0]['text']
+	return val
 
 
 def captureImage(): 
@@ -123,7 +138,7 @@ def captureImage():
 			return picName
 
 
-itemDetect("https://i.pinimg.com/originals/b0/2c/0c/b02c0cf8fb13db43a158cebff6fa392f.jpg")
+itemDetect("https://chrishacktech.blob.core.windows.net/photos/price8.jpg")
 
 #names = ["Kaushik", "Radhika", "Maegan", "Chris"]
 #namesMoney = [20,20,20,20] 
