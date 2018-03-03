@@ -2,6 +2,7 @@
 import requests
 import json
 import urllib.request, urllib.parse, urllib.error
+import cv2
 #import urllib, urllib2
 #hard coded values
 key = "1f3021aa1ab74cedaf685826f631ab5a"
@@ -39,10 +40,10 @@ def addFace(personID):
 	requests.post(url=url,json=data,headers=headers)
 
 #create person group person (including faces). returns list of ids of created people
-def createPerson():
+def createPerson(names):
 	url = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/persongroups/"+personGroupId+"/persons"
 	#hardcoded names
-	names = ["Kaushik", "Radhika", "Maegan", "Chris"]
+	#names = ["Kaushik", "Radhika", "Maegan", "Chris"]
 	ids = []
 	for name in names:
 		body = { "name": name }
@@ -94,9 +95,60 @@ def detectFace(imageUrl):
 		print("rate limited")
 	return getPersonName(winner)
 
-deletePersonGroup()
-createPersonGroup()
-ids = createPerson()
-trainGroup()
-testImage = "capture.jpg"
-print ("Detected face", detectFace(testImage))
+
+def itemDetect(imageUrl): 
+	handWriteDetectKey = "85f3d93125ad42b78b08b6a9e5c5f240"
+	url = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/recognizeText?handwriting=true"
+	detectHeaders = {"Content-Type":'application/json','Ocp-Apim-Subscription-Key': handWriteDetectKey}
+	data = {"url": imageUrl}
+	response = requests.post(url = url, json = data, headers = detectHeaders) 
+	print (response.text)
+
+
+def captureImage(): 
+	cap = cv2.VideoCapture(0)
+
+	while(True):
+		ret, frame = cap.read()
+		if ret is True: 
+			rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
+		else:
+			continue 
+		cv2.imshow('frame', rgb)
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			picName = 'capture.jpg'
+			out = cv2.imwrite(picName, frame)
+			cap.release()
+			cv2.destroyAllWindows()
+			return picName
+
+
+itemDetect("https://i.pinimg.com/originals/b0/2c/0c/b02c0cf8fb13db43a158cebff6fa392f.jpg")
+
+#names = ["Kaushik", "Radhika", "Maegan", "Chris"]
+#namesMoney = [20,20,20,20] 
+#deletePersonGroup()
+#createPersonGroup()
+#ids = createPerson(names)
+#trainGroup()
+#testImage = captureImage() 
+#foundName = detectFace(testImage)
+#print ("We detected " + foundName + ". Searching in database...")
+#i = 0 
+#while i < len(names):
+#	if (names[i] == foundName):
+#		break 
+#	i = i + 1  
+
+#cost = 4
+#if i < len(names):
+#	print ("Your current bank account balance is " + str(namesMoney[i]) + " . Total cost is " + str(cost) + ". Tap button to proceed.") 
+#else:
+#	print ("We couldn't find you. Please try again.")
+
+
+
+
+
+
+
