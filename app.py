@@ -1,5 +1,6 @@
 import tkinter 
 from PIL import ImageTk, Image
+import smart_scanner 
 import facetest
 
 
@@ -52,6 +53,7 @@ def go():
 window = tkinter.Tk()
  
 window.title("FacePay")
+
 
 b1 = tkinter.Button(window, text= "New user")
 b1.pack() 

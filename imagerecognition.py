@@ -4,7 +4,6 @@ import cv2
 import boto3
 import boto.s3.connection
 import boto
-from amazon.api import AmazonAPI
 import urllib.parse
 
 key = '4a06edca17014688b808c4318d99a0ca'
@@ -21,16 +20,17 @@ def captureImage():
 			continue 
 		cv2.imshow('frame', rgb)
 		if cv2.waitKey(1) & 0xFF == ord('q'):
-			picName = 'capture.jpg'
+			picName = 'capture'
 			out = cv2.imwrite(picName, frame)
 			cap.release()
 			cv2.destroyAllWindows()
 			return picName
 
+
 def rekognition(image):
 	bucket='rekognition-examples-bucket-hacktech'
 	#add updated image to bucket
-	conn = boto.s3.connect_to_region('us-east-1', aws_access_key_id = 'AKIAISPFBVSGK54TJPYA', aws_secret_access_key = 'ZEuM+SrQGkke23ibZm2eIwgrTtAURzRG+rOkz6Jl',calling_format = boto.s3.connection.OrdinaryCallingFormat(),)
+	conn = boto.s3.connect_to_region('us-east-1', aws_access_key_id = '', aws_secret_access_key = '',calling_format = boto.s3.connection.OrdinaryCallingFormat(),)
 	tempBucket = conn.get_bucket(bucket)
 	key_name = image;
 	k = tempBucket.new_key(key_name)
@@ -60,13 +60,13 @@ def walmartSearch(words):
 		count = count + 1
 	print (queryString)
 	queryString = queryString[:-1]
-	url = "http://api.walmartlabs.com/v1/search?apiKey=6wvbt3evvvunjmnpfhg7sv92&sort=price&format=json&" + urllib.parse.urlencode({"query":queryString})
+	url = "http://api.walmartlabs.com/v1/search?apiKey=ysq2gzht734uhxzxah72vgq2&sort=price&format=json&" + urllib.parse.urlencode({"query":queryString})
 	print (url)
 	response = requests.get(url=url,headers=headers).json()
 	itemName = response["items"][0]["name"]
 	itemPrice = response["items"][0]["salePrice"]
 
-	print(itemName,itemPrice)
+	return itemName, itemPrice   
 
 imageName = captureImage()
 words = rekognition(imageName)
