@@ -3,6 +3,9 @@ import requests
 import json
 import urllib.request, urllib.parse, urllib.error
 import cv2
+from azure.storage.blob import ContentSettings
+from azure.storage.blob import BlockBlobService
+#import tkinter 
 #import urllib, urllib2
 #hard coded values
 key = "1f3021aa1ab74cedaf685826f631ab5a"
@@ -79,7 +82,7 @@ def detectFace(imageUrl):
 	data = open(imageUrl, 'rb').read()  
 	#body = { "url" : imageUrl}
 	response = requests.post(url = urlAPI, data = data, headers = localHeaders)
-	print (response.json())
+	#print (response.json())
 	try:
 		theirID = response.json()[0]["faceId"]
 	except:
@@ -96,29 +99,82 @@ def detectFace(imageUrl):
 	return getPersonName(winner)
 
 
-def itemDetect(imageUrl): 
-	handWriteDetectKey = "85f3d93125ad42b78b08b6a9e5c5f240"
-	url = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/recognizeText?handwriting=true"
-	detectHeaders = {"Content-Type":'application/json','Ocp-Apim-Subscription-Key': handWriteDetectKey}
-	data = {"url": imageUrl}
-	response = requests.post(url = url, json = data, headers = detectHeaders) 
-	#operationLocation =  response.headers['Operation-Location'];
-	operationLocation = response.request.headers['Operation-Location']
-	operationID = str(operationLocation)[operationLocation.rfind('/')+1:]
+def getItem():
+	cap = cv2.VideoCapture(0)
 
-	import time
+	while(True):
+		ret, frame = cap.read()
+		if ret is True: 
+			rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
+		else:
+			continue 
+		cv2.imshow('frame', rgb)
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			picName = 'blobItem.jpg'
+			out = cv2.imwrite(picName, frame)
+			cap.release()
+			cv2.destroyAllWindows()
+			break 
+	block_blob_service = BlockBlobService(account_name='chrishacktech', account_key='xThYN0X/abcijoR3hiP/g8Wu7LgyyC9Skk9yVC+b27jMMYrK7ulMTq6ZeliaJhfJDkRl1pNJ+MD+Av9As9W5tw==')
+	block_blob_service.create_blob_from_path(
+    'photos',
+    picName,
+    picName,
+    content_settings=ContentSettings(content_type='image/jpg'))
+
+
+#def itemDetect(imageUrl): 
+#	handWriteDetectKey = "85f3d93125ad42b78b08b6a9e5c5f240"
+#	url = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/recognizeText?handwriting=true"
+#	detectHeaders = {"Content-Type":'application/json','Ocp-Apim-Subscription-Key': handWriteDetectKey}
+#	data = {"url": imageUrl}
+#	response = requests.post(url = url, json = data, headers = detectHeaders) 
+#	operationLocation =  response.headers['Operation-Location'];
+	#operationLocation = response.request.headers['Operation-Location']
+#	operationID = str(operationLocation)[operationLocation.rfind('/')+1:]
+
+#	import time
 	#sometimes takes a second to process
-	time.sleep(1)
+#	time.sleep(1)
 
-	tempUrl = 'https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/textOperations/'+operationID
-	response = requests.get(url=tempUrl,headers=detectHeaders)
+#	tempUrl = 'https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/textOperations/'+operationID
+#	response = requests.get(url=tempUrl,headers=detectHeaders)
 
-	recognitionResult = response.json()['recognitionResult']
-	if(len(str(recognitionResult)) == 0):
-		return -1;
-	val = recognitionResult['lines'][0]['text']
-	return val
+#	recognitionResult = response.json()['recognitionResult']
+	#if(len(str(recognitionResult)) == 0 or len(str(recognitionResult)) > 1):
+	#	return -1;
+	#val = recognitionResult['lines'][0]['text']
 
+#	analysis = {}
+#	while not "recognitionResult" in analysis:
+#		response_final = requests.get(response.headers["Operation-Location"], headers=detectHeaders)
+#		analysis       = response_final.json()
+#		time.sleep(1)
+
+
+#	val = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]]
+#	return val
+
+def itemDetect(imageUrl):
+	handWriteDetectKey = "85f3d93125ad42b78b08b6a9e5c5f240"
+	text_recognition_url = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/RecognizeText"
+	detectHeaders  = {'Ocp-Apim-Subscription-Key': handWriteDetectKey}
+	detectParams   = {'handwriting' : True}
+	detectData     = {'url': imageUrl}
+	response = requests.post(text_recognition_url, headers=detectHeaders, params=detectParams, json=detectData)
+	response.raise_for_status()
+	operation_url = response.headers["Operation-Location"]
+	import time
+
+	analysis = {}
+	while not "recognitionResult" in analysis:
+		response_final = requests.get(response.headers["Operation-Location"], headers=detectHeaders)
+		analysis       = response_final.json()
+		time.sleep(1)
+
+	#val = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]]
+	val = [line["text"] for line in analysis["recognitionResult"]["lines"]]
+	return val 
 
 def captureImage(): 
 	cap = cv2.VideoCapture(0)
@@ -137,31 +193,12 @@ def captureImage():
 			cv2.destroyAllWindows()
 			return picName
 
-
-itemDetect("https://chrishacktech.blob.core.windows.net/photos/price8.jpg")
-
-#names = ["Kaushik", "Radhika", "Maegan", "Chris"]
-#namesMoney = [20,20,20,20] 
-#deletePersonGroup()
-#createPersonGroup()
-#ids = createPerson(names)
-#trainGroup()
-#testImage = captureImage() 
-#foundName = detectFace(testImage)
-#print ("We detected " + foundName + ". Searching in database...")
-#i = 0 
-#while i < len(names):
-#	if (names[i] == foundName):
-#		break 
-#	i = i + 1  
-
-#cost = 4
-#if i < len(names):
-#	print ("Your current bank account balance is " + str(namesMoney[i]) + " . Total cost is " + str(cost) + ". Tap button to proceed.") 
-#else:
-#	print ("We couldn't find you. Please try again.")
-
-
+def parseCost(costArr):
+	cost = ""
+	for a in costArr:
+		if (a.isdigit()):
+			cost = cost + a
+	return cost 
 
 
 
