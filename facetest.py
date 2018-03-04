@@ -6,6 +6,10 @@ import cv2
 from azure.storage.blob import ContentSettings
 from azure.storage.blob import BlockBlobService
 import imagerecognition
+import face_pay 
+
+
+
 #import urllib, urllib2
 #hard coded values
 key = "1f3021aa1ab74cedaf685826f631ab5a"
@@ -26,19 +30,25 @@ def deletePersonGroup():
 	url = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/persongroups/" + personGroupId
 	response = requests.delete(url=url,headers=headers)
 #takes in the user's id, gets their name, and adds a photo from an url
+
+
 def addFace(personID):
 	name = getPersonName(personID)
 
-	if(name == 'Kaushik'):
+	if(name == 'Kaushik Tandon'):
 		photo = 'https://media.licdn.com/dms/image/C5103AQF6o6kmZyN5qQ/profile-displayphoto-shrink_200_200/0?e=1525255200&v=alpha&t=qSE3eKdrVZkrpMpWnS9ldheYY7t0NF1E6d2wbkL3ig8'
-	elif(name == 'Radhika'):
+	elif(name == 'Radhika Agrawal'):
 		photo = 'https://scontent-lax3-1.xx.fbcdn.net/v/t31.0-8/22859851_833930706775284_2298164206331624972_o.jpg?oh=da14e9f5d3f6dd67ed16ac6b5d49ca23&oe=5B49CFC2'
-	elif(name == 'Maegan'):
+	elif(name == 'Maegan Chew'):
 		photo = 'https://scontent-lax3-1.xx.fbcdn.net/v/t31.0-8/18839535_710270525842729_6235509578421077480_o.jpg?oh=812bc4ca650131295a23e089e02c7f3b&oe=5B442168'
-	elif(name == 'Chris'):
+	elif(name == 'Chris Hailey'):
 		photo = 'https://scontent-lax3-1.xx.fbcdn.net/v/t31.0-8/21457362_1762418087392430_5728002921223690541_o.jpg?oh=1e62faa1f514bef393fb4a5e5cf3830d&oe=5B4BFA1C'
+	else:
+		captureImageToBlob()
+		photo = 'https://chrishacktech.blob.core.windows.net/photos/newuser_blob.jpg'
 
 	url = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/persongroups/"+personGroupId+"/persons/"+personID+"/persistedFaces"
+
 	data = {"url":photo}
 	requests.post(url=url,json=data,headers=headers)
 
@@ -99,18 +109,32 @@ def detectFace(imageUrl):
 	return getPersonName(winner)
 
 
- def processItems():
- 	i = 1
- 	names = []
- 	prices = [] 
- 	while i <= 5: 
- 		imageName = imagerecognition.captureImage() + i + ".jpg" 
- 		words = imagerecognition.rekognition(imageName)
- 		itemName, itemPrice = imagerecognition.walmartSearch(words)
- 		names.append(itemName)
- 		prices.append(itemPrice)
- 		i = i +1 
- 	return names, prices 
+def processItems(numIteScan):
+	numItemsScanned = int(numIteScan)
+	i = 1
+	items = []
+	prices = []
+	while (i <= numItemsScanned):
+		cap = cv2.VideoCapture(0)	
+		while (True):
+			ret, frame = cap.read()
+			if ret is True: 
+				rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
+			else:
+				continue 
+			cv2.imshow('frame', rgb)
+			if cv2.waitKey(1) & 0xFF == ord('q'):
+				picName = 'item' + str(i) + '.jpg'
+				out = cv2.imwrite(picName, frame)
+				cap.release()
+				break
+		cv2.destroyAllWindows()
+		words = imagerecognition.rekognition(picName)
+		itemName, itemPrice = imagerecognition.walmartSearch(words)
+		items.append(itemName)
+		prices.append(itemPrice)
+		i = i + 1 
+	return items, prices 
 
 
 #def getItem():
@@ -180,7 +204,35 @@ def captureImage():
 			cv2.destroyAllWindows()
 			return picName
 
+def captureImageToBlob():
+	cap = cv2.VideoCapture(0)
+	while(True):
+		ret, frame = cap.read()
+		if ret is True: 
+			rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
+		else:
+			continue 
+		cv2.imshow('frame', rgb)
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			picName = 'newuser_blob.jpg'
+			out = cv2.imwrite(picName, frame)
+			block_blob_service = BlockBlobService(account_name='chrishacktech', account_key='xThYN0X/abcijoR3hiP/g8Wu7LgyyC9Skk9yVC+b27jMMYrK7ulMTq6ZeliaJhfJDkRl1pNJ+MD+Av9As9W5tw==')
+			block_blob_service.create_blob_from_path(
+   			'photos',
+  			picName,
+    		picName,
+    		content_settings=ContentSettings(content_type='image/jpg'))
+			cap.release()
+			cv2.destroyAllWindows()
+			break 
+
 def determineCost(arr):
 	return sum(arr) 
 
+def processReceipt(items, prices):
+	i = 0
+	while (i < len(items)):
+		print ("Item " + str(i+1) + ": " + items[i] + "	" + str(prices[i]))
+		i = i + 1 
+	print ("Total: " + str(sum(prices)))
 

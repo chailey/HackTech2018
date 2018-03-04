@@ -6,6 +6,8 @@ import boto.s3.connection
 import boto
 import urllib.parse
 
+
+
 key = '4a06edca17014688b808c4318d99a0ca'
 headers= {"Content-Type":'application/json'}
 
@@ -20,7 +22,7 @@ def captureImage():
 			continue 
 		cv2.imshow('frame', rgb)
 		if cv2.waitKey(1) & 0xFF == ord('q'):
-			picName = 'capture'
+			picName = 'capture.jpg'
 			out = cv2.imwrite(picName, frame)
 			cap.release()
 			cv2.destroyAllWindows()
@@ -30,7 +32,7 @@ def captureImage():
 def rekognition(image):
 	bucket='rekognition-examples-bucket-hacktech'
 	#add updated image to bucket
-	conn = boto.s3.connect_to_region('us-east-1', aws_access_key_id = '', aws_secret_access_key = '',calling_format = boto.s3.connection.OrdinaryCallingFormat(),)
+	conn = boto.s3.connect_to_region('us-east-1', aws_access_key_id = 'AKIAJLFJKLBFY6XQ666Q', aws_secret_access_key = '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',calling_format = boto.s3.connection.OrdinaryCallingFormat(),)
 	tempBucket = conn.get_bucket(bucket)
 	key_name = image;
 	k = tempBucket.new_key(key_name)
@@ -48,7 +50,6 @@ def rekognition(image):
 		word = str(word).lower()
 		if word not in words and len(word) > 2: #dont want short words like a or as
 			words.append(word)
-			print(word)
 	return words
 
 def walmartSearch(words):
@@ -58,17 +59,11 @@ def walmartSearch(words):
 		currentWord = words[count]
 		queryString = queryString + currentWord + " "
 		count = count + 1
-	print (queryString)
 	queryString = queryString[:-1]
 	url = "http://api.walmartlabs.com/v1/search?apiKey=ysq2gzht734uhxzxah72vgq2&sort=price&format=json&" + urllib.parse.urlencode({"query":queryString})
-	print (url)
 	response = requests.get(url=url,headers=headers).json()
 	itemName = response["items"][0]["name"]
 	itemPrice = response["items"][0]["salePrice"]
-
 	return itemName, itemPrice   
 
-imageName = captureImage()
-words = rekognition(imageName)
-walmartSearch(words)
 

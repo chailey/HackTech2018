@@ -1,6 +1,5 @@
 import tkinter 
 from PIL import ImageTk, Image
-import smart_scanner 
 import facetest
 
 

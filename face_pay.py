@@ -14,6 +14,8 @@ logging.getLogger("flask_ask").setLevel(logging.DEBUG)
 
 global state
 
+global numItemsScanned 
+
 @ask.launch
 
 def new_game():
@@ -41,6 +43,7 @@ def numItems(num):
 	global state
 	if state == 2:
 		return statement(render_template('scan', num=num))
+		numItemsScanned = num 
 	return question(render_template('quit'))
 
 @ask.intent("NoIntent")
