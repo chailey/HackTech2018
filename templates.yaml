@@ -1,0 +1,17 @@
+# round: How many items do you have?
+
+# win: You said you have {{first}} items.
+
+welcome: Welcome to face pay. Are you ready to check out?
+
+user: Are you already a user in the system?
+
+exist: Great! How many items do you have?
+
+scan: You said you have {{num}} items. Please scan them now.
+
+nocout: Whoops! Come back later when you're ready to check out!
+
+register: Uh oh! Please sign up as a user in the system and come back later!
+
+quit: Sorry, I can't help you.
