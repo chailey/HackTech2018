@@ -5,6 +5,7 @@ import urllib.request, urllib.parse, urllib.error
 import cv2
 from azure.storage.blob import ContentSettings
 from azure.storage.blob import BlockBlobService
+#import tkinter 
 #import urllib, urllib2
 #hard coded values
 key = "1f3021aa1ab74cedaf685826f631ab5a"
@@ -81,7 +82,7 @@ def detectFace(imageUrl):
 	data = open(imageUrl, 'rb').read()  
 	#body = { "url" : imageUrl}
 	response = requests.post(url = urlAPI, data = data, headers = localHeaders)
-	print (response.json())
+	#print (response.json())
 	try:
 		theirID = response.json()[0]["faceId"]
 	except:
@@ -192,42 +193,12 @@ def captureImage():
 			cv2.destroyAllWindows()
 			return picName
 
-
-names = ["Kaushik", "Radhika", "Maegan", "Chris"]
-namesMoney = [20,20,20,20] 
-deletePersonGroup()
-createPersonGroup()
-ids = createPerson(names)
-trainGroup()
-getItem() 
-cost = itemDetect("https://chrishacktech.blob.core.windows.net/photos/blobItem.jpg")
-print (cost) 
-if (cost == -1): 
-	cost = input("Sorry, number not recognized. Please type in.")
-testImage = captureImage() 
-foundName = detectFace(testImage)
-print ("We detected " + foundName + ". Searching in database...")
-i = 0 
-while i < len(names):
-	if (names[i] == foundName):
-		break 
-	i = i + 1  
-if i < len(names):
-	print ("Your current bank account balance is " + str(namesMoney[i]) + " . Total cost is " + str(cost))
-	newBankBalance = int(namesMoney[i]) - int(cost) 
-	if (newBankBalance < 0):
-		print ("Transaction denied. You have no more funds.") 
-	elif(newBankBalance < 10):
-		print ("Transaction accepted.")
-		print ("Your FacePay balance is now " + str(newBankBalance))
-		print ("Warning: Your funds are low. Consider adding more balance or apply for FacePay credit.")
-		namesMoney[i] = newBankBalance
-	else:
-		print ("Transaction accepted.")
-		print ("Your FacePay balance is now " + str(newBankBalance))
-		namesMoney[i] = newBankBalance
-else:
-	print ("We couldn't find you. Please try again.")
+def parseCost(costArr):
+	cost = ""
+	for a in costArr:
+		if (a.isdigit()):
+			cost = cost + a
+	return cost 
 
 
 
